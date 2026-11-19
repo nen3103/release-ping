@@ -1,0 +1,35 @@
+name: apec-wall
+
+# APEC live wall: check YouTube live listings and refresh wall/status.json on the apec-wall
+# branch, but only when the existing data is stale (the in-session checker is the primary
+# writer; this is the backup). Scheduled runs are best-effort and may be delayed or skipped.
+# To stop after the summit: Actions tab -> "apec-wall" -> "..." -> Disable workflow.
+
+on:
+  schedule:
+    - cron: "1/5 * * * *"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Write even if the current data is fresh (for testing)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apec-wall
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: apec-wall
+          fetch-depth: 1
+      - name: Check and update
+        run: python3 ci/ci.py --rounds 2 --gap 150 ${{ inputs.force && '--force' || '' }}
