@@ -1,0 +1,118 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>深圳APEC ライブ中継ウォール</title>
+<style>
+:root{--bg:#f6f7f8;--panel:#ffffff;--fg:#17191c;--muted:#5d636b;--line:#dde1e5;--live:#b3261e;--amber:#a46a00;--ok:#1e7f6a;--chip:#8a3b9e;color-scheme:light}
+@media (prefers-color-scheme: dark){:root{--bg:#121416;--panel:#1a1d20;--fg:#e8eaed;--muted:#9aa1a9;--line:#2c3136;--live:#ef6b62;--amber:#e0a93a;--ok:#5fc3a9;--chip:#c98bdb;color-scheme:dark}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 "Noto Sans JP","Hiragino Sans","Yu Gothic",system-ui,sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:8px 12px;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+h1{font-size:1rem;margin:0}.meta{color:var(--muted);font-size:.8rem}.meta.stale{color:var(--live);font-weight:700}
+button,select{font:inherit;font-size:.8rem;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:3px 10px;cursor:pointer}
+button:hover{border-color:var(--muted)}button:focus-visible,a:focus-visible{outline:2px solid var(--live);outline-offset:2px}
+#grid{display:grid;gap:8px;padding:8px 12px;grid-template-columns:repeat(var(--cols,3),minmax(0,1fr))}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;min-width:0}
+.tile.fresh{border-color:var(--live)}
+.bar{display:flex;gap:6px;align-items:center;padding:5px 8px;font-size:.78rem}
+.ch{font-weight:700;font-size:.88rem;white-space:nowrap}.sp{flex:1}
+.pill{font-weight:700;border-radius:4px;padding:0 6px;border:1px solid currentColor;white-space:nowrap}
+.pill.live{background:var(--live);border-color:var(--live);color:var(--bg)}.pill.upcoming{color:var(--amber)}.pill.ended{color:var(--muted)}.pill.always{color:var(--ok)}
+.sc{color:var(--chip);border:1px solid currentColor;border-radius:4px;padding:0 6px;white-space:nowrap}
+.v{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.frame{position:relative;aspect-ratio:16/9;background:#000}.now{padding:5px 8px 0;font-size:.85rem;font-weight:700}.frame{overflow:hidden}.frame iframe{position:absolute;left:0;top:0;width:256px;height:144px;border:0;transform-origin:0 0;transform:scale(var(--k,1))}
+.t{padding:4px 8px 7px;color:var(--muted);font-size:.78rem;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.x{padding:0 7px}a{color:var(--fg)}button.primary{background:var(--live);border-color:var(--live);color:var(--bg);font-weight:700;font-size:.9rem;padding:5px 14px}.nav{font-size:.82rem;font-weight:700;padding:3px 12px;border-radius:6px;border:1px solid var(--fg);text-decoration:none;white-space:nowrap}
+#tray{padding:4px 12px 24px}#tray h2{font-size:.8rem;color:var(--muted);letter-spacing:.06em;margin:14px 0 6px}
+.cand{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--line);font-size:.82rem}
+.cand .tt{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* スマホ: 横2枠×縦3段。枠の見出しは「状態・局名・×」だけに詰める */
+@media(max-width:800px){
+#grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;padding:4px 6px}
+header{padding:6px 8px;gap:4px 8px}h1{font-size:.9rem;width:100%}header label{display:none}header .sp{display:none}
+.nav{font-size:.72rem;padding:2px 8px}#pickmeta{padding:4px 8px 0!important;font-size:.7rem}
+.tile{border-radius:6px}.bar{padding:3px 4px;gap:4px;font-size:.66rem;flex-wrap:nowrap}
+.bar .ch{font-size:.72rem;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.bar .sc,.bar .v,.bar a{display:none}.pill{padding:0 4px}.x{padding:0 5px}
+.now{display:none}.t{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.66rem;padding:2px 4px 4px}
+#tray{padding:4px 8px 24px}.cand{grid-template-columns:auto minmax(0,1fr) auto;gap:4px 8px}.cand .ch{min-width:0;overflow:hidden;text-overflow:ellipsis}.cand .tt{grid-column:1/-1;grid-row:2}
+}
+</style></head><body>
+<header>
+  <h1>深圳APEC ライブ中継ウォール</h1>
+  <a class="nav" href="https://nen3103.github.io/navwarn-ping/" target="_blank" rel="noopener">深圳APEC速報へ</a>
+  <a class="nav" href="https://m-live.cctvnews.cctv.com/live/landscape.html?liveRoomNumber=14141076740356162971" target="_blank" rel="noopener">CCTV（央視新聞）の中継を開く</a>
+  <span class="meta" id="meta"></span><span class="sp"></span>
+  <label class="meta">列 <select id="cols"><option>1</option><option>2</option><option selected>3</option><option>4</option></select></label>
+  <button id="playall" type="button" class="primary">▶ すべて再生</button>
+  <button id="reset" type="button">選定どおりに戻す</button>
+</header>
+<p class="meta" id="pickmeta" style="padding:8px 12px 0;margin:0"></p>
+<div id="grid"></div>
+<div id="tray"></div>
+<script>
+(function(){
+/* 表示するのは「選定枠」だけ。ほかは下の一覧から手で追加する。 */
+var data={streams:[]},hidden={},extra=[],lastState={},tiles={},MAXN=6;
+try{hidden=JSON.parse(localStorage.getItem("wall2-hidden")||"{}");extra=JSON.parse(localStorage.getItem("wall2-extra")||"[]");document.getElementById("cols").value=localStorage.getItem("wall-cols")||"3"}catch(e){}
+var grid=document.getElementById("grid"),tray=document.getElementById("tray"),meta=document.getElementById("meta"),pm=document.getElementById("pickmeta"),cols=document.getElementById("cols");
+function save(){try{localStorage.setItem("wall2-hidden",JSON.stringify(hidden));localStorage.setItem("wall2-extra",JSON.stringify(extra));localStorage.setItem("wall-cols",cols.value)}catch(e){}}
+function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+function num(v){return v==null?"":v>=10000?(Math.round(v/1000)/10)+"万人":v.toLocaleString("ja-JP")+"人"}
+var PRI={"米中ロ会談":0,"米中会談":1,"米ロ会談":2,"記者会見":3,"中ロ会談":4,"APEC全般":5,"歓迎宴":6,"常時配信":7};
+var FEED=/^(AP通信|ロイター|CGTN|Sky News|CNBC|ホワイトハウス|C-SPAN|LiveNOW|新華社|CCTV|ブルームバーグ)/;
+function rank(r){return (r.sc==="常時配信"?20000:0)+(r.st==="live"?0:1500)+(FEED.test(r.ch)?0:300)+PRI[r.sc]*30}
+function byRank(a,b){return rank(a)-rank(b)||a.ch.localeCompare(b.ch)||a.id.localeCompare(b.id)}
+/* 画質を最低にする: プレーヤーを 256x144 の小ささで読み込ませ（YouTube は枠の大きさに合わせて画質を選ぶ）、表示だけ拡大する */
+function src(id){return "https://www.youtube.com/embed/"+encodeURIComponent(id)+"?autoplay=1&mute=1&playsinline=1&vq=tiny&enablejsapi=1&origin="+encodeURIComponent(location.origin)}
+/* 自動再生の後押し: プレーヤーに「消音して再生」の命令を送る（読み込み直後に数回、および「すべて再生」ボタンから） */
+function cmd(f,fn){try{f.contentWindow.postMessage(JSON.stringify({event:"command",func:fn,args:[]}),"https://www.youtube.com")}catch(e){}}
+function kick(f){cmd(f,"mute");cmd(f,"playVideo")}
+function nudge(f){[800,2500,5000,9000].forEach(function(ms){setTimeout(function(){kick(f)},ms)})}
+function playAll(){Array.prototype.forEach.call(document.querySelectorAll(".frame iframe"),kick)}
+var ro=new ResizeObserver(function(es){es.forEach(function(e){e.target.style.setProperty("--k",(e.contentRect.width/256).toFixed(4))})});
+function pill(r){if(r.sc==="常時配信")return["always","常時"];return r.st==="live"?["live","配信中"]:["upcoming","予定"+(r.at?" "+r.at.replace(/^\d+日 /,""):"")]}
+function note(id){return (data.notes&&data.notes[id])||""}
+function chosen(){
+  var by={};(data.streams||[]).forEach(function(r){by[r.id]=r});
+  var auto=(data.streams||[]).filter(function(r){return r.st==="live"&&r.sc!=="常時配信"}).sort(byRank).map(function(r){return r.id});
+  var ids=(data.picks||[]).slice();var chs={};ids.forEach(function(id){if(by[id])chs[by[id].ch]=1});auto.forEach(function(id){if(ids.length<MAXN&&ids.indexOf(id)<0&&!hidden[id]&&!chs[by[id].ch]){ids.push(id);chs[by[id].ch]=1}});
+  var out=[];ids.concat(extra).forEach(function(id){if(by[id]&&!hidden[id]&&out.indexOf(by[id])<0)out.push(by[id])});return out}
+function tile(r){
+  var id=r.id,t=el("div","tile");t.dataset.id=id;
+  var bar=el("div","bar");["pill","ch","sc","v"].forEach(function(c){bar.appendChild(el("span",c))});bar.appendChild(el("span","sp"));
+  var a=el("a",null,"YouTube");a.target="_blank";a.rel="noopener";a.href="https://www.youtube.com/watch?v="+encodeURIComponent(id);bar.appendChild(a);
+  var x=el("button","x","×");x.type="button";x.setAttribute("aria-label","この枠を外す");x.addEventListener("click",function(){hidden[id]=1;extra=extra.filter(function(e){return e!==id});save();render()});bar.appendChild(x);
+  t.appendChild(bar);var f=el("div","frame"),i=el("iframe");i.allow="autoplay; encrypted-media; picture-in-picture; fullscreen";i.allowFullscreen=true;i.referrerPolicy="strict-origin-when-cross-origin";i.addEventListener("load",function(){nudge(i)});i.src=src(id);f.appendChild(i);ro.observe(f);t.appendChild(f);
+  t.appendChild(el("div","now"));t.appendChild(el("div","t"));return t}
+function fill(t,r){var id=r.id,p=pill(r);
+  var q=t.querySelector(".pill");q.className="pill "+p[0];q.textContent=p[1];
+  t.querySelector(".ch").textContent=r.ch+"［"+r.co+"］";var sc=t.querySelector(".sc");sc.textContent=r.sc;sc.hidden=r.sc==="常時配信";
+  t.querySelector(".v").textContent=r.st==="live"&&r.v!=null?"視聴"+num(r.v):"";t.querySelector(".t").textContent=r.t;
+  var n=t.querySelector(".now");n.textContent=note(id)?"メモ: "+note(id):"";n.hidden=!note(id);
+  if(lastState[id]==="upcoming"&&r.st==="live"){t.querySelector("iframe").src=src(id)}
+  lastState[id]=r.st}
+function render(){
+  document.documentElement.style.setProperty("--cols",cols.value);
+  var show=chosen(),keep={};
+  show.forEach(function(r,n){var t=tiles[r.id];if(!t){t=tiles[r.id]=tile(r);grid.appendChild(t)}t.style.order=n;fill(t,r);keep[r.id]=1});
+  Object.keys(tiles).forEach(function(id){if(!keep[id]){tiles[id].remove();delete tiles[id]}});
+  tray.textContent="";
+  var rest=(data.streams||[]).filter(function(r){return !keep[r.id]}).sort(byRank);
+  if(rest.length){tray.appendChild(el("h2",null,"並べていない配信（"+rest.length+"）"));
+    rest.forEach(function(r){var d=el("div","cand"),p=pill(r);d.appendChild(el("span","pill "+p[0],p[1]));d.appendChild(el("span","ch",r.ch+"［"+r.co+"］"));
+      d.appendChild(el("span","tt",(note(r.id)?"メモ: "+note(r.id)+" ／ ":"")+(r.sc!=="常時配信"?"【"+r.sc+"】":"")+r.t));
+      var b=el("button",null,"並べる");b.type="button";b.addEventListener("click",function(){delete hidden[r.id];if(extra.indexOf(r.id)<0)extra.push(r.id);save();render();scrollTo(0,0)});d.appendChild(b);tray.appendChild(d)})}
+  var age=data.ts?Math.round((Date.now()/1000-data.ts)/60):null,stale=age!=null&&age>10;
+  meta.className="meta"+(stale?" stale":"");meta.textContent=data.ts?show.length+"枠を表示・配信状況の点検 "+data.checked+"（北京時間・"+(age<=0?"たった今":age+"分前")+"）"+(stale?" 点検が止まっています":""):"読み込み中…";
+  pm.textContent=data.picks&&data.picks.length?"選定: "+(data.picked||"")+"（北京時間）"+(data.picknote?" ／ "+data.picknote:""):"配信タイトルから自動で6枠を選んでいます。"}
+var BR="https://api.github.com/repos/nen3103/release-ping/branches/apec-wall",RAWB="https://raw.githubusercontent.com/nen3103/release-ping/";
+function j(u,o){return fetch(u,o||{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.json()})}
+/* 表示サービスや CDN の古い控えを避けるため、最新コミットの番号を引いてからその版の status.json を読む */
+function getStatus(){
+  if(/^(localhost|127\.)/.test(location.hostname))return j("status.json?"+Date.now());
+  return j(BR).then(function(b){return j(RAWB+b.commit.sha+"/wall/status.json")}).catch(function(){return j(RAWB+"apec-wall/wall/status.json?"+Date.now())})}
+function load(){getStatus().then(function(d){if(d&&d.streams&&(!data.ts||d.ts>=data.ts)){data=d}render()}).catch(function(){render()})}
+cols.addEventListener("change",function(){save();render()});
+document.getElementById("playall").addEventListener("click",function(){playAll();setTimeout(playAll,600)});
+document.getElementById("reset").addEventListener("click",function(){hidden={};extra=[];save();render()});
+load();setInterval(load,120000);setInterval(render,30000);
+})();
+</script></body></html>

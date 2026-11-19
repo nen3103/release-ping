@@ -1,0 +1,15 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>深圳APEC ライブ中継ウォール</title></head><body style="font:14px system-ui,sans-serif;padding:16px">
+<p id="m">最新版を読み込み中…</p>
+<script>
+/* この入口ファイルは変更しない。毎回 GitHub の最新コミットから本体 (wall/app.html) を読み込んで差し替える。 */
+(function(){
+var RAWB="https://raw.githubusercontent.com/nen3103/release-ping/";
+function t(u){return fetch(u,{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.text()})}
+fetch("https://api.github.com/repos/nen3103/release-ping/branches/apec-wall",{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.json()})
+ .then(function(b){return t(RAWB+b.commit.sha+"/wall/app.html")})
+ .catch(function(){return t(RAWB+"apec-wall/wall/app.html?"+Date.now())})
+ .then(function(h){document.open();document.write(h);document.close()})
+ .catch(function(){document.getElementById("m").textContent="読み込めませんでした。再読み込みしてください。"});
+})();
+</script></body></html>
