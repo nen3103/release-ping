@@ -3,11 +3,10 @@ name: apec-wall
 # APEC live wall: check YouTube live listings and refresh wall/status.json on the apec-wall
 # branch, but only when the existing data is stale (the in-session checker is the primary
 # writer; this is the backup). Scheduled runs are best-effort and may be delayed or skipped.
-# To stop after the summit: Actions tab -> "apec-wall" -> "..." -> Disable workflow.
+# ENDED 2026-11-20: the summit is over. The schedule is removed and the job is switched off
+# (if: false). To resume: restore the schedule lines and delete the "if: false" line.
 
 on:
-  schedule:
-    - cron: "1/5 * * * *"
   workflow_dispatch:
     inputs:
       force:
@@ -24,6 +23,7 @@ concurrency:
 
 jobs:
   check:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
